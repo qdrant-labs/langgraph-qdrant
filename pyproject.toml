@@ -28,7 +28,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/qdrant-labs/langgraph-qdrant/tree/langgraph-qdrant"
+Homepage = "https://github.com/qdrant-labs/langgraph-qdrant"
 Repository = "https://github.com/qdrant-labs/langgraph-qdrant"
 Issues = "https://github.com/qdrant-labs/langgraph-qdrant/issues"
 
