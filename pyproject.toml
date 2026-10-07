@@ -1,0 +1,67 @@
+[project]
+name = "langgraph-store-qdrant"
+version = "0.1.0"
+description = "Qdrant-backed long-term memory store for LangGraph."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Qdrant Team", email = "info@qdrant.tech" }]
+keywords = ["langgraph", "langchain", "qdrant", "memory", "store", "vector-search"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Database",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+dependencies = [
+    "langgraph-checkpoint>=2.0.19,<5",
+    "qdrant-client>=1.19.1",
+    "httpx>=0.25",
+]
+
+[project.urls]
+Homepage = "https://github.com/qdrant-labs/langgraph-qdrant/tree/langgraph-qdrant"
+Repository = "https://github.com/qdrant-labs/langgraph-qdrant"
+Issues = "https://github.com/qdrant-labs/langgraph-qdrant/issues"
+
+[dependency-groups]
+dev = [
+    "langgraph>=1.2.14",
+    "mypy>=2.4.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.16.10",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv]
+required-version = ">=0.12.23"
+
+[tool.uv.build-backend]
+module-name = "langgraph.store.qdrant"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+mypy_path = "src"
+explicit_package_bases = true
+namespace_packages = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
