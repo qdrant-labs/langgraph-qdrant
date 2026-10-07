@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_LOCKED: "1"
+  QDRANT_REQUIRE_SERVER: "true"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+      - run: make lint
+
+  test:
+    name: test (Python ${{ matrix.python }}, Qdrant ${{ matrix.qdrant }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        qdrant: [latest]
+        include:
+          - python: "3.10"
+            qdrant: v1.16.0 # the oldest supported server
+    env:
+      UV_PYTHON: ${{ matrix.python }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+      - run: QDRANT_VERSION=${{ matrix.qdrant }} make start-qdrant
+      - run: make test
+
+  lowest:
+    name: test (lowest dependency versions)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+      - run: QDRANT_VERSION=v1.16.0 make start-qdrant
+      - name: Install the oldest allowed versions of the direct dependencies
+        run: |
+          uv venv --python 3.10 .venv-lowest
+          uv pip install --python .venv-lowest --resolution lowest-direct \
+            -e . "pytest>=8" "pytest-asyncio>=0.24"
+      # The graph tests need langgraph, which requires a newer checkpointer.
+      - run: .venv-lowest/bin/python -m pytest --ignore=tests/test_graph_integration.py
+
+  cluster:
+    name: test (3-node replicated cluster)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+      - run: make start-cluster
+      - run: make test-cluster
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+      - run: uv build
+      - name: Import the built wheel in a clean environment
+        env:
+          UV_LOCKED: "0"
+        run: >-
+          uv run --isolated --no-project --with dist/*.whl
+          python -c "from langgraph.store.qdrant import QdrantStore, AsyncQdrantStore"
